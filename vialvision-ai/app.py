@@ -7,6 +7,12 @@ import os
 import time
 from collections import defaultdict
 
+# Auto-download tracker config if not present
+import urllib.request, os
+if not os.path.exists("botsort.yaml"):
+    url = "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/trackers/botsort.yaml"
+    urllib.request.urlretrieve(url, "botsort.yaml")
+
 # ─────────────────────────────────────────────
 # PAGE CONFIG
 # ─────────────────────────────────────────────
