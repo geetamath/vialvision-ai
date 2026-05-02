@@ -47,9 +47,6 @@ requirements.txt
 
 "A fully functional prototype is publicly accessible at https://vialvision-ai-pharma.streamlit.app for real-time demonstration and evaluation."
 
-st.markdown("""
-<div class="status-warn">
-⚠ Live webcam only works when running locally.<br>
+## NOTE
+# ⚠ Live webcam only works when running locally.<br>
 For cloud use — run: <b>streamlit run app.py</b> on your machine.
-</div>
-""", unsafe_allow_html=True)
