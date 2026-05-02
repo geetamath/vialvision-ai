@@ -1083,87 +1083,69 @@ with tab2:
                 components.html(st.session_state['html_report'], height=900, scrolling=True)
 
 # ══════════════════════════════════════════════
-# TAB 3 — LIVE CAMERA (Logitech)
+# TAB 3 — BROWSER CAMERA (works on cloud)
 # ══════════════════════════════════════════════
 with tab3:
     st.markdown('<br>', unsafe_allow_html=True)
     st.markdown("""
     <div class="panel">
-        <div class="panel-title">📷 Live Camera Detection</div>
-        <div style="font-size:0.85rem;color:#4a6080;line-height:1.8;">
-        <span style="color:#00d4ff">• Connect your Logitech camera before starting</span><br>
-        <span style="color:#00ff88">• Camera index 0 = Logitech external, 1 = built-in</span><br>
-        <span style="color:#ffe066">• Uses YOLOv11s detection on each frame</span><br>
-        <span style="color:#00d4ff">• Press <b style="color:#ff3366">Stop Camera</b> to end session
+        <div class="panel-title">📷 Camera Detection</div>
+        <div style="font-size:0.85rem;color:#c8d8e8;line-height:1.8;">
+        • Click <b style="color:#00d4ff">Take Photo</b> button below to capture<br>
+        • Allow camera permission when browser asks<br>
+        • Detection runs instantly on each captured photo<br>
+        • Works on phone, tablet and laptop browsers ✅
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    cam_index = st.selectbox("Camera Index", [0, 1, 2],
-                              index=1, help="0=Logitech external, 1=built-in")
+    img_file = st.camera_input("📸 Take a photo for vial detection")
 
-    col1, col2 = st.columns(2)
-    start_cam = col1.button("▶  Start Camera", use_container_width=True)
-    stop_cam  = col2.button("⏹  Stop Camera",  use_container_width=True)
+    if img_file is not None:
+        file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
+        img_bgr = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-    if start_cam:
-        st.session_state['cam_running'] = True
-    if stop_cam:
-        st.session_state['cam_running'] = False
+        with st.spinner("Running detection..."):
+            results = model.predict(img_bgr, conf=conf_threshold, verbose=False)
 
-    if st.session_state.get('cam_running', False):
-        cap = cv2.VideoCapture(cam_index, cv2.CAP_DSHOW)
-        if not cap.isOpened():
-            st.markdown(
-                '<div class="status-err">⚠ Cannot access camera. Try index 0 or 1.</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                '<div class="status-ok">✓ Camera active — Live detection running</div>',
-                unsafe_allow_html=True
-            )
-            cam_ph     = st.empty()
-            metrics_ph = st.empty()
-            frame_cnt  = 0
+        img_out = draw_boxes(img_bgr.copy(), results, model)
+        img_rgb = cv2.cvtColor(img_out, cv2.COLOR_BGR2RGB)
 
-            while st.session_state.get('cam_running', False):
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frame_cnt += 1
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            st.image(img_rgb, caption="Detection Result", use_container_width=True)
+        with col2:
+            counts = get_counts(results, model)
+            st.markdown(metric_cards_html(counts), unsafe_allow_html=True)
 
-                # YOUR EXACT: Run detection every 2 frames
-                if frame_cnt % 2 == 0:
-                    results = model.predict(frame, verbose=False, conf=conf_threshold)
+            st.markdown('<div class="panel-title" style="margin-top:1rem">DETECTIONS</div>', unsafe_allow_html=True)
+            if len(results[0].boxes) == 0:
+                st.markdown('<div class="status-warn">No objects detected</div>', unsafe_allow_html=True)
+            else:
+                names = model.model.names
+                conf_html = ""
+                for box in results[0].boxes:
+                    cls  = int(box.cls[0])
+                    conf = float(box.conf[0])
+                    name = names.get(cls, 'Unknown')
+                    color_map = {'Vial': '#00d4ff', 'Sealed': '#00ff88', 'Unsealed': '#ff8c00', 'Damaged': '#ff3366'}
+                    color = color_map.get(name, '#ffffff')
+                    conf_html += conf_bar_html(name, conf, color)
+                st.markdown(conf_html, unsafe_allow_html=True)
 
-                    # Draw labels using draw_boxes
-                    if len(results[0].boxes) > 0:
-                        frame = draw_boxes(frame.copy(), results, model)
-
-                    # YOUR EXACT: Count by class
-                    class_counts = {}
-                    for box in results[0].boxes:
-                        cls = model.model.names[int(box.cls[0])]
-                        class_counts[cls] = class_counts.get(cls, 0) + 1
-
-                    cam_ph.image(
-                        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
-                        caption="Live Detection",
-                        use_container_width=True
-                    )
-                    metrics_ph.markdown(
-                        metric_cards_html(class_counts),
-                        unsafe_allow_html=True
-                    )
-            cap.release()
+                tags_html = ""
+                for name, cnt in counts.items():
+                    cls_name = name.lower()
+                    tags_html += f'<span class="det-tag {cls_name}">{name} × {cnt}</span>'
+                st.markdown(tags_html, unsafe_allow_html=True)
     else:
         st.markdown("""
-        <div style="text-align:center;padding:3rem;border:1px dashed #1e3a5f;border-radius:10px;">
+        <div style="text-align:center;padding:2rem;border:1px dashed #1e3a5f;border-radius:10px;margin-top:1rem;">
             <div style="font-size:3rem;">📷</div>
             <div style="color:#c8d8e8;font-family:'Share Tech Mono',monospace;
                         font-size:0.85rem;margin-top:1rem;">
-                CAMERA INACTIVE<br>Click "Start Camera" to begin
+                USE THE CAMERA INPUT ABOVE<br>
+                <span style="color:#00d4ff">Take a photo → instant detection</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1176,3 +1158,4 @@ st.markdown("""
 Ramaiah Institute of Technology &nbsp;|&nbsp; Robotics and AI
 </div>
 """, unsafe_allow_html=True)
+
