@@ -44,3 +44,5 @@ app.py          # Streamlit app
 best.pt         # YOLOv11s weights (18MB)
 requirements.txt
 ```
+
+"A fully functional prototype is publicly accessible at https://vialvision-ai-pharma.streamlit.app for real-time demonstration and evaluation."
