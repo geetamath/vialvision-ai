@@ -728,7 +728,7 @@ with st.sidebar:
         help="Path to your trained best.pt file"
     )
 
-    conf_threshold = 0.65
+    conf_threshold = 0.6
     
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown('<div class="panel-title">📊 Model Info</div>', unsafe_allow_html=True)
