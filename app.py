@@ -799,7 +799,7 @@ with tab1:
                 img_bgr = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
             with st.spinner("Running inference..."):
-                results = model.predict(img_bgr, conf=conf_threshold, verbose=False)
+                results = model.predict(img_bgr, conf=conf_threshold, iou=0.3, verbose=False)
 
             img_out = img_bgr.copy()
             img_out = draw_boxes(img_out, results, model)
@@ -929,6 +929,7 @@ with tab2:
                         frame, persist=True,
                         tracker="botsort.yaml",
                         conf=conf_threshold,
+                        iou=0.3,
                         verbose=False
                     )
 
@@ -1135,7 +1136,7 @@ with tab3:
 
                 # YOUR EXACT: Run detection every 2 frames
                 if frame_cnt % 2 == 0:
-                    results = model.predict(frame, verbose=False, conf=conf_threshold)
+                    results = model.predict(frame, conf=conf_threshold, iou=0.3, verbose=False)
 
                     # Draw labels using draw_boxes
                     if len(results[0].boxes) > 0:
