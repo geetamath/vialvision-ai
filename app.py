@@ -312,8 +312,8 @@ def draw_boxes(img_bgr, results, model):
     h, w = img_bgr.shape[:2]
     
     # Dynamic font scale based on image size
-    font_scale = max(0.4, min(0.9, w / 1280))
-    thickness = max(1, int(w / 800))
+    font_scale = max(0.6, min(1.2, max(h, w) / 800))
+    thickness = max(2, int(max(h, w) / 400))
     box_thickness = max(2, int(w / 500))
 
     for box in results[0].boxes:
@@ -728,7 +728,7 @@ with st.sidebar:
         help="Path to your trained best.pt file"
     )
 
-    conf_threshold = 0.6
+    conf_threshold = 0.7
     
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown('<div class="panel-title">📊 Model Info</div>', unsafe_allow_html=True)
@@ -799,7 +799,8 @@ with tab1:
                 img_bgr = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
             with st.spinner("Running inference..."):
-                results = model.predict(img_bgr, conf=conf_threshold, iou=0.3, verbose=False)
+                img_bgr = cv2.resize(img_bgr, (640, 640))  # ← add here
+                results = model.predict(img_bgr, conf=conf_threshold, verbose=False)
 
             img_out = img_bgr.copy()
             img_out = draw_boxes(img_out, results, model)
@@ -929,7 +930,6 @@ with tab2:
                         frame, persist=True,
                         tracker="botsort.yaml",
                         conf=conf_threshold,
-                        iou=0.3,
                         verbose=False
                     )
 
@@ -1136,7 +1136,7 @@ with tab3:
 
                 # YOUR EXACT: Run detection every 2 frames
                 if frame_cnt % 2 == 0:
-                    results = model.predict(frame, conf=conf_threshold, iou=0.3, verbose=False)
+                    results = model.track(frame, persist=True,tracker="botsort.yaml", conf=conf_threshold, verbose=False)
 
                     # Draw labels using draw_boxes
                     if len(results[0].boxes) > 0:
