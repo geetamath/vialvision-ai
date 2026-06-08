@@ -1,7 +1,7 @@
 # 💊 VialVision AI
 **AI-Powered Pharmaceutical Vial Detection, Counting & Quality Control**
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://vialvision-ai.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://vialvision-ai-pharma.streamlit.app/)
 ![YOLOv11](https://img.shields.io/badge/YOLOv11s-96.9%25_mAP50-green)
 
 > M.Tech Final Year Project — Geeta Siddramayya Math | 1MS24RAI03  
